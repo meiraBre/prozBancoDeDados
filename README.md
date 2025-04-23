@@ -3,12 +3,7 @@
 
 ## 🚀 Comandos Úteis
 - Criar tabela:
-CREATE TABLE nome_da_tabela (
-  id        SERIAL        PRIMARY KEY,
-  coluna1   TIPO [restrições],
-  coluna2   TIPO [restrições],
-  ...
-);
+<pre> ```sql CREATE TABLE nome_da_tabela ( id SERIAL PRIMARY KEY, coluna1 TIPO [restrições], coluna2 TIPO [restrições], ... ); ``` </pre>
 
 - Inserir dados:
 INSERT INTO nome_da_tabela (coluna1, coluna2, ...)
