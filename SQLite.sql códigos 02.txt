@@ -1,0 +1,47 @@
+CREATE TABLE produtos (
+    produto_id SERIAL PRIMARY KEY,
+    nome VARCHAR(100),
+    estoque INT DEFAULT 0
+);
+CREATE TABLE movimentacoes (
+    movimentacao_id SERIAL PRIMARY KEY,
+    produto_id INT REFERENCES produtos(produto_id),
+    tipo VARCHAR(10), -- 'entrada' ou 'saida'
+    quantidade INT,
+    data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+INSERT INTO produtos (nome, estoque) VALUES
+('Chocolate', 100),
+('Bala', 50);
+-- Função da trigger
+CREATE OR REPLACE FUNCTION atualizar_estoque()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.tipo = 'entrada' THEN
+        UPDATE produtos
+        SET estoque = estoque + NEW.quantidade
+        WHERE produto_id = NEW.produto_id;
+    ELSIF NEW.tipo = 'saida' THEN
+        UPDATE produtos
+        SET estoque = estoque - NEW.quantidade
+        WHERE produto_id = NEW.produto_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger vinculada ao insert na tabela movimentacoes
+CREATE TRIGGER trg_atualizar_estoque
+AFTER INSERT ON movimentacoes
+FOR EACH ROW
+EXECUTE FUNCTION atualizar_estoque();
+-- Entrada de 10 Chocolates (produto_id = 1)
+INSERT INTO movimentacoes (produto_id, tipo, quantidade)
+VALUES (1, 'entrada', 10);
+
+-- Saída de 5 Balas (produto_id = 2)
+INSERT INTO movimentacoes (produto_id, tipo, quantidade)
+VALUES (2, 'saida', 5);
+
+-- Ver estoque atualizado
+SELECT * FROM produtos;
