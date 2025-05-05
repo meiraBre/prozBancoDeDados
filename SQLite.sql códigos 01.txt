@@ -1,0 +1,54 @@
+CREATE TABLE clientes (
+    cliente_id SERIAL PRIMARY KEY,
+    nome VARCHAR(100),
+    email VARCHAR(100)
+);
+CREATE TABLE produtos (
+    produto_id SERIAL PRIMARY KEY,
+    nome VARCHAR(100),
+    preco DECIMAL(10,2)
+);
+CREATE TABLE pedidos (
+    pedido_id SERIAL PRIMARY KEY,
+    cliente_id INT REFERENCES clientes(cliente_id),
+    data_pedido DATE
+);
+CREATE TABLE itens_pedido (
+    item_id SERIAL PRIMARY KEY,
+    pedido_id INT REFERENCES pedidos(pedido_id),
+    produto_id INT REFERENCES produtos(produto_id),
+    quantidade INT
+);
+INSERT INTO clientes (nome, email) VALUES
+('Ana Souza', 'ana@email.com'),
+('Carlos Lima', 'carlos@email.com');
+
+-- Inserir produtos
+INSERT INTO produtos (nome, preco) VALUES
+('Chocolate', 5.50),
+('Bala', 1.20),
+('Pirulito', 0.80);
+
+-- Inserir pedidos
+INSERT INTO pedidos (cliente_id, data_pedido) VALUES
+(1, '2025-05-01'),
+(2, '2025-05-03');
+
+-- Inserir itens do pedido
+INSERT INTO itens_pedido (pedido_id, produto_id, quantidade) VALUES
+(1, 1, 2),  -- Ana comprou 2 Chocolates
+(1, 2, 5),  -- Ana comprou 5 Balas
+(2, 3, 3);  -- Carlos comprou 3 Pirulitos
+
+SELECT clientes.nome AS cliente, produtos.nome AS produto, itens_pedido.quantidade
+FROM itens_pedido
+JOIN pedidos ON itens_pedido.pedido_id = pedidos.pedido_id
+JOIN clientes ON pedidos.cliente_id = clientes.cliente_id
+JOIN produtos ON itens_pedido.produto_id = produtos.produto_id;
+SELECT pedidos.pedido_id, clientes.nome AS cliente, 
+       SUM(produtos.preco * itens_pedido.quantidade) AS total_gasto
+FROM pedidos
+JOIN clientes ON pedidos.cliente_id = clientes.cliente_id
+JOIN itens_pedido ON pedidos.pedido_id = itens_pedido.pedido_id
+JOIN produtos ON itens_pedido.produto_id = produtos.produto_id
+GROUP BY pedidos.pedido_id, clientes.nome;
