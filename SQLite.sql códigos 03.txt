@@ -1,0 +1,34 @@
+CREATE TABLE clientes (
+    cliente_id SERIAL PRIMARY KEY,
+    nome VARCHAR(100),
+    email VARCHAR(100),
+    data_cadastro DATE DEFAULT CURRENT_DATE
+);
+CREATE TABLE controle_cadastro_diario (
+    data_registro DATE PRIMARY KEY,
+    total_clientes INT DEFAULT 0
+);
+CREATE OR REPLACE FUNCTION atualizar_controle_clientes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM controle_cadastro_diario WHERE data_registro = CURRENT_DATE) THEN
+        UPDATE controle_cadastro_diario
+        SET total_clientes = total_clientes + 1
+        WHERE data_registro = CURRENT_DATE;
+    ELSE
+        INSERT INTO controle_cadastro_diario (data_registro, total_clientes)
+        VALUES (CURRENT_DATE, 1);
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER trigger_contador_clientes
+AFTER INSERT ON clientes
+FOR EACH ROW
+EXECUTE FUNCTION atualizar_controle_clientes();
+INSERT INTO clientes (nome, email) VALUES
+('Maria Souza', 'maria@email.com'),
+('João Silva', 'joao@email.com'),
+('Clara Mendes', 'clara@email.com');
+SELECT * FROM controle_cadastro_diario;
